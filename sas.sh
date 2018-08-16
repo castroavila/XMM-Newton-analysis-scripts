@@ -103,12 +103,36 @@ if  [ -f ${full_path} ] && [ -n ${full_path}  ] ; then
 	rm ${tar_file}
 	echo "${green}${tar_file} deleted ${reset}"	
 	check
-	cd ${root_path}/pn
-	epproc
-	cd ${root_path}/mos
-	emproc
-	echo "${green} Data for both pn and mos cameras were genereted${reset}"
-
+	echo "${green}Which camera do you want to extract the data from: (pn, mos, both)?${reset}"
+	echo ""
+	read arg
+##PN extraction	
+	if [ $arg == "pn" ]; then
+		cd ${root_path}/pn
+		epproc
+		echo "${green} Extraction for PN done${reset}"
+		cd ${root_path}
+#MOS extraction	
+	elif [ $arg == "mos" ]; then
+		cd ${root_path}/mos
+		emproc
+		echo "${green} Extraction for MOS done${reset}"
+		cd ${root_path}
+#Both cameras
+	elif [ $arg == "both" ]; then
+	
+		cd ${root_path}/pn
+		epproc
+		cd ${root_path}/mos
+		emproc
+		echo "${green} Extraction  for both pn and mos cameras done${reset}"
+		cd ${root_path}
+	
+	else 
+		echo "${green}Option $arg not valid${reset}"
+		cd ${root_path}
+		return	
+	fi
 	
 fi
 
