@@ -17,6 +17,52 @@
 	blink="\033[5m"
 
 
+
+function check {
+	cif_file=`ls $SAS_ODF/*.cif`
+#	echo "cif_file= "$cif_file
+	sumfile=`ls $SAS_ODF/*SUM.SAS`
+#	echo "SUM.SAS= "$sumfile
+
+
+##Load Heasoft and SAS
+heainit
+SAS
+
+
+##############################################
+##############################################
+#Check if SAS tools have been loaded properly
+
+if [ -v SAS_PATH ]; then 
+	echo "${green}SAS tools already loaded${reset}"
+	
+	else 
+	
+	echo "${red}SAS tools don't loaded${reset}"
+	 return  
+fi	
+echo ${reset}
+#with option "-z" checks if the variable is unset or set to empty string
+
+if [ -z $cif_file ] && [ -z $sumfile ] ; then
+
+		cd $SAS_ODF
+		cifbuild
+		export SAS_CCF=$SAS_ODF/ccf.cif
+		odfingest
+		sumfile=`ls $SAS_ODF/*SUM.SAS`
+		export SAS_ODF=$sumfile
+		
+		else
+		echo "${green}*.cif and *SUM.SAS files already exist${reset}"
+
+		export SAS_CCF=${cif_file}	
+		export SAS_ODF=${sumfile}
+fi 
+	
+}
+
 #############################################
 #############################################
 #############################################
@@ -43,8 +89,8 @@ if  [ -f ${full_path} ] && [ -n ${full_path}  ] ; then
 ##check if either odf, pn or mos exist
 	if [ -d "odf" ]; then
 		
-	echo "${red}odf direcory  already exits, delete it."
-	echo "Otherwise provide this direcory instead the .tar.gz file ${reset}"
+	echo "${red}odf directory  already exits, delete it."
+	echo "Otherwise provide this directory instead the .tar.gz file ${reset}"
 	return 
 	fi
 	mkdir odf pn mos
@@ -61,9 +107,7 @@ if  [ -f ${full_path} ] && [ -n ${full_path}  ] ; then
 	epproc
 	cd ${root_path}/mos
 	emproc
-	echo "{green} Data for both pn and mos cameras were genereted${reset}"
-	user_name=`getent passwd ${user} | cut -d : -f 5`
-	echo "${user_name} Good luck from now on with your analysis"	
+	echo "${green} Data for both pn and mos cameras were genereted${reset}"
 
 	
 fi
@@ -73,8 +117,9 @@ fi
 
 if [ -n ${full_path} ] && [ -d ${full_path} ]; then
 	
-	echo -e "${green}You provided odf directory $1${reset}"
+	echo -e "${green}You provided odf directory ${full_path}${reset}"
 	export SAS_ODF=${full_path}
+	check
 fi
 
 #Neither file nor directory exists
@@ -87,54 +132,6 @@ if  [ -f ${full_path} ]  || [ -d ${full_path} ]; then
 	return
 fi
 
-function check {
-#echo "${green}"
-	cif_file=`ls $SAS_ODF/*.cif`
-#	echo "cif_file= "$cif_file
-	sumfile=`ls $SAS_ODF/*SUM.SAS`
-#	echo "SUM.SAS= "$sumfile
-#echo "${reset}"
-
-
-
-##Load Heasoft and SAS
-heainit
- SAS
-
-
-##############################################
-##############################################
-#Check if SAS tools have been loaded properly
-
-echo "${green}"
-if [ -v SAS_PATH ]; then 
-	echo "SAS tools already loaded"
-	
-	else 
-	
-	echo "SAS tools don't loaded${reset}"
-	 return  
-fi	
-
-#with option "-z" checks if the variable is unset or set to empty string
-
-if [ -z $cif_file ] && [ -z $sumfile ] ; then
-
-		cd $SAS_ODF
-		cifbuild
-		export SAS_CCF=$SAS_ODF/ccf.cif
-		odfingest
-		sumfile=`ls $SAS_ODF/*SUM.SAS`
-		export SAS_ODF=$sumfile
-		
-		else
-
-
-		export SAS_CCF=$SAS_ODF/ccf.cif	
-		export SAS_ODF=$sumfile
-fi 
-	
-}
 
 
 
@@ -149,6 +146,9 @@ echo "SAS_CCFPATH="$SAS_CCFPATH
 echo "SAS_ODF="$SAS_ODF
 echo "SAS_CCF="$SAS_CCF
 echo "**********************************************"
+user=`whoami`
+user_name=`getent passwd ${user} | cut -d : -f 5`
+echo "${green} ${user_name} Good luck from now on with your analysis....${reset}"	
 echo "${reset}"
 
 
