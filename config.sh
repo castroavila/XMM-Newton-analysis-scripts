@@ -127,7 +127,7 @@ fi
 			else
 			
 			echo "${red} Camera mode doesn't match, exit....${reset}"
-			exit
+			return
 	
 	fi
 			

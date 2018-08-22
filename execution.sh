@@ -31,7 +31,7 @@ if	[[	-f $CONFIG_FILE	]]; then
 		
 		else
 		
-		echo "${red}Configuration file doesn't exist${reset}"
+		echo "${red}Configuration file doesn't provided${reset}"
 		return 
 fi
 
