@@ -433,9 +433,9 @@ if [ $camera == "mos1" ] || [ $camera == "mos2" ]; then
 
  	fi
 
+echo "${yellow}Background spectral extraction: `success $?`"
 fi
 
-echo "${yellow}Background spectral extraction: `success $?`"
 
 #Calculate the area of source and background region used to make the spectral files
 
@@ -467,7 +467,7 @@ fi
 
 #Rebin the spectrum and link associated files
 
-         specgroup spectrumset=$source_signal_spec mincounts=25 oversample=3 rmfset=$rmf_matrix arfset=$arf_matrix backgndset=$bkg_signal_spec groupedset=$source_spec >/dev/null
+         specgroup spectrumset=$source_signal_spec mincounts=$mincounts oversample=$oversample rmfset=$rmf_matrix arfset=$arf_matrix backgndset=$bkg_signal_spec groupedset=$source_spec >/dev/null
                 echo "${yellow}specgroup: `success $?`"
 
 #log
@@ -529,7 +529,7 @@ echo "">>$logfile
 	echo "">>$logfile
 	echo "#Rebin the spectrum and link associated files">>$logfile
 	echo "">>$logfile
-	echo "specgroup spectrumset=$source_signal_spec mincounts=25 oversample=3 rmfset=$rmf_matrix arfset=$arf_matrix backgndset=$bkg_signal_spec groupedset=$source_spec">>$logfile
+	echo "specgroup spectrumset=$source_signal_spec mincounts=$mincounts oversample=$oversample rmfset=$rmf_matrix arfset=$arf_matrix backgndset=$bkg_signal_spec groupedset=$source_spec">>$logfile
 
 	;;
 
