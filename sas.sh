@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash 
 
 
 #  sas.sh
@@ -17,6 +17,18 @@
 	blink="\033[5m"
 
 
+##check if a command was successfully executed
+function success {
+
+
+if [ $1 -ne 0 ]; then
+	echo "${red} Executed command failed${reset}"
+	return	
+	else
+	echo "${green}success${reset}"
+fi
+echo "${reset}"
+}
 
 function check {
 	cif_file=`ls $SAS_ODF/*.cif`
@@ -26,9 +38,24 @@ function check {
 
 
 ##Load Heasoft and SAS
-heainit
-SAS
 
+if [ -v HEADAS ]; then
+	. $HEADAS/headas-init.sh
+	success $?
+	echo "${green} Heasoft loaded${reset}"
+	else
+	echo "${red} HEADAS variable didn't find. Check ~/.bashrc file${reset}"
+	return
+fi 
+
+
+if [ -v SAS_DIR ]; then
+	source $SAS_DIR/sas-setup.sh
+	echo "${green} SAS_DIR defined ${reset}"
+	else
+	echo "${red} SAS_DIR didn't find. Check ~/.bashrc file ${reset}"
+	return	
+fi
 
 ##############################################
 ##############################################
@@ -89,7 +116,7 @@ if  [ -f ${full_path} ] && [ -n ${full_path}  ] ; then
 ##check if either odf, pn or mos exist
 	if [ -d "odf" ]; then
 		
-	echo "${red}odf directory  already exits, delete it."
+	echo "${red}odf directory  already exists, delete it."
 	echo "Otherwise provide this directory instead the .tar.gz file ${reset}"
 	return 
 	fi
@@ -129,7 +156,7 @@ if  [ -f ${full_path} ] && [ -n ${full_path}  ] ; then
 		cd ${root_path}
 	
 	else 
-		echo "${green}Option $arg not valid${reset}"
+		echo "${red}Option $arg not valid${reset}"
 		cd ${root_path}
 		return	
 	fi
