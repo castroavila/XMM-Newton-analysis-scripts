@@ -124,7 +124,7 @@ fi
 			read arg
 			echo "		eventfile="$arg																	>>$config_file
 	
-			else
+	else
 			
 			echo "${red} Camera mode doesn't match, exit....${reset}"
 			return
@@ -166,25 +166,26 @@ fi
 	echo "">>$config_file
 	if [ $mode == "timing" ]; then
 			
-			if [ $camera == "mos1" ] || [ $camera == "mos2" ]; then
+#			if [ $camera == "mos1" ] || [ $camera == "mos2" ]; then
+#
+#				
+#				echo "#Source extraction">>$config_file
+#				echo "">>$config_file
+#				echo "		sourceextraction=\"(RAWX>=29) && (RAWX<=47)\"">>$config_file
+#				echo "#Background extraction">>$config_file
+#				echo "">>$config_file
+#				echo "		bkgextraction=\"((X,Y) in circle(0.,0.,0.))\"">>$config_file
+#				else 
 
-				
-				echo "#Source extraction">>$config_file
-				echo "">>$config_file
-				echo "		sourceextraction=\"(RAWX>=29) && (RAWX<=47)\"">>$config_file
-				echo "#Background extraction">>$config_file
-				echo "">>$config_file
-				echo "		bkgextraction=\"((X,Y) in circle(0.,0.,0.))\"">>$config_file
-				else 
-				
-				echo "#Source extraction">>$config_file
-				echo "">>$config_file
-				echo "		sourceextraction=\"(RAWX>=29) && (RAWX<=47)\"">>$config_file
-				echo "#Background extraction">>$config_file
-				echo "">>$config_file
-				echo "		bkgextraction=\"(RAWX>=29) && (RAWX<=47)\"">>$config_file
+#If mode equals timing, source and background will be extracted from the same timing event file				
+			echo "#Source extraction">>$config_file
+			echo "">>$config_file
+			echo "		sourceextraction=\"(RAWX>=29) && (RAWX<=47)\"">>$config_file
+			echo "#Background extraction">>$config_file
+			echo "">>$config_file
+			echo "		bkgextraction=\"(RAWX>=29) && (RAWX<=47)\"">>$config_file
 
-			fi
+#			fi
 
 		else
 
@@ -201,11 +202,13 @@ fi
 	
 #Spectrum
 	echo "#">>$config_file	
-	echo "#	Spectrum"																							>>$config_file
-	echo "#">>$config_file	
-	echo ""																										>>$config_file
-	echo ""																										>>$config_file
-	echo ""																										>>$config_file
+	echo "#	Spectrum"							>>$config_file
+	echo "#A few values assumed by default. Based on SAS threads"		>>$config_file	
+	echo ""									>>$config_file
+	echo "mincounts=25"							>>$config_file
+	echo "oversample=3"							>>$config_file
+	echo ""									>>$config_file
+	echo ""									>>$config_file
 
 
 #Lightcurve
