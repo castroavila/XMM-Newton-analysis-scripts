@@ -1,16 +1,19 @@
 #!/bin/bash
 
-#  execution.sh
-#  
-#  Manuel Castro Avila <manuel.castro@inpe.br>
-#  
-#  28-02-2017
-#  
+# @author	   : Manuel Castro Avila <manuel.castro@inpe.br>
+# @file		   : execute.sh	
+# @created	   : 28-Feb-2017
 #  National Institute for Space Research (INPE),  São José dos Campos, SP, Brazil
 
 
+##################################################################################
+##################################################################################
+#  This script has been developed under financial support from FAPESP (Fundação  #
+#  de Amparo à Pesquisa do Estado de São Paulo, Brazil) under grant #2015/25972-0#
+##################################################################################
+##################################################################################
 
-#Colors for outputtig print
+#Colors for outputting print
 
 	red=`tput setaf 1`
 	green=`tput setaf 2`
@@ -20,8 +23,6 @@
 
 
 	CONFIG_FILE=./$1
-#	`heainit`
-#	source /home/castro/PROGRAMS/SAS_15/xmmsas_20160201_1833/sas-setup.sh
 	
 	
 	
@@ -56,32 +57,49 @@ fi
 ##############print variables#################
 
 
-echo "${yellow}"
-echo "********************************************"
-echo "********Environment variables***************"
-echo "********************************************"
-
-
-echo "SAS_DIR="$SAS_DIR
-echo "SAS_CCFPATH="$SAS_CCFPATH
-echo "SAS_ODF="$SAS_ODF
-echo "SAS_CCF="$SAS_CCF
-echo "**********************************************"
-echo "${reset}"
+	echo "${yellow}"
+	echo "********************************************"
+	echo "********Environment variables***************"
+	echo "********************************************"
+	
+	
+	echo "SAS_DIR=          "$SAS_DIR
+	echo "SAS_CCFPATH=      "$SAS_CCFPATH
+	echo "SAS_ODF=          "$SAS_ODF
+	echo "SAS_CCF=          "$SAS_CCF
+	echo "**********************************************"
+	echo "${reset}"
 
 #######################################################
 #######################################################
 
+#Camera exists?
 
-    echo	"${yellow}"
-    echo 	"***************************************************************************"
-    echo	"*                    CONFIGURATION                                        *"
-    echo 	"*Source name:          "$sourcename
+	if [ $camera != "mos1" ] && [ $camera != "mos2" ] && [ $camera != "pn" ]; then
+		echo "Camera option: ${camera} doesn't exist"
+		return
+	fi
+
+#Mode exist?
+
+	if [ $mode != "timing"  ] && [ $mode != "imaging" ]; then
+		echo "Camera mode: ${mode} doesn't exist"
+		return 
+	fi
+
+
+    	echo	"${yellow}"
+    	echo 	"***************************************************************************"
+    	echo	"*                    CONFIGURATION                                        *"
+    	echo 	"*Source name:          "$sourcename
 	echo 	"*camera:               "$camera
 	echo 	"*mode:                 "$mode
 	echo 	"*eventfile:            "$eventfile
-	if [ -n "$imagingeventfile" ]; then
-	echo    "*imagingeventfile:     "$imagingeventfile 
+#	if [ -n "$imagingeventfile" ]; then
+#	echo    "*imagingeventfile:     "$imagingeventfile 
+#	fi
+	if [ -n "$lctimeresolution" ]; then
+	echo 	"*time resolution:      "$lctimeresolution
 	fi
 	echo	"*rate:                 "$rate	
 	echo 	"*sourceextraction:     "$sourceextraction
@@ -94,6 +112,7 @@ echo "${reset}"
 
 	echo	"${green}"
 	echo	"****************************************************************************"
+	echo	"*        Options:                                                          *"
 	echo 	"*                 1)filter                                                 *"
 	echo 	"*                 2)pileup                                                 *"
 	echo 	"*                 3)spectrum                                               *"
@@ -104,7 +123,7 @@ echo "${reset}"
 ##Log file
 	logfile=log.txt
 
-##funtion
+##function
 
 function success {
 
@@ -114,34 +133,34 @@ if [ $1 -eq 0 ]; then
 	else
 	echo "fail"
 fi
-echo "${reset}"
+#echo "${reset}"
 }
 	
 #Filtering the events 
 
-		ratefile="$sourcename"_ratefile_"$camera"_"$mode".fits
-		gtifile="$sourcename"_gti_"$camera"_"$mode".fits
-		cleaneventfile="$sourcename"_"$camera"_"$mode"_clean.fits		
+		ratefile=${sourcename}_ratefile_${camera}_${mode}.fits
+		gtifile=${sourcename}_gti_${camera}_${mode}.fits
+		cleaneventfile=${sourcename}_${camera}_${mode}_clean.fits		
 #Filtering when mos is in timing mode. In this case two files are generated: TimingEvts and ImagingEvts.
 
-if [ -z "$imagingeventfile" ]; then
-		echo "${yellow} Imaging file when mos in timing mode don't generate..${reset}"
-		else
-	
-		ratefile_ima="$sourcename"_ratefile_"$camera"_"$mode"_imaging.fits
-		gtifile_ima="$sourcename"_gti_"$camera"_"$mode"_imaging.fits
-		cleaneventfile_ima="$sourcename"_"$camera"_"$mode"_imaging_clean.fits
-		
-
-fi
+#if [ -z "$imagingeventfile" ]  &&  [ $camera == "mos1" ] || [ $camera == "mos2" ]  && [ $mode == "timing"  ]; then
+#		echo "${yellow} Imaging file when mos in timing mode don't generate..${reset}"
+#		else
+#	
+#		ratefile_ima=${sourcename}_ratefile_${camera}_${mode}_imaging.fits
+#		gtifile_ima=${sourcename}_gti_${camera}_${mode}_imaging.fits
+#		cleaneventfile_ima=${sourcename}_${camera}_${mode}_imaging_clean.fits
+#		
+#
+#fi
 
 
 
 #Image for both source and background extraction
 
 						
-		source_image="$sourcename"_"$camera"_"$mode"_source_image.fits
-		bkg_image="$sourcename"_"$camera"_"$mode"_bkg_image.fits
+		source_image=${sourcename}_${camera}_${mode}_source_image.fits
+		bkg_image=_${camera}_${mode}_bkg_image.fits
 
 	echo "${yellow}Task:${reset}"
 	
@@ -160,88 +179,59 @@ if	[ $camera == "pn" ]; then
 
 		echo "pn"
 #	Expression of filtering
-		expression_filter="#XMMEA_EP && (PI>10000&&PI<12000) && (PATTERN==0)"	
-		rate_express="RATE<=$rate"
-		expression_clean="#XMMEA_EP && gti("$gtifile",TIME) && (PI>150)"
+		expression_filter="\" #XMMEA_EP && (PI>10000&&PI<12000) && (PATTERN==0) \""
+		rate_express="\"RATE<=${rate}\""
+		expression_clean="\" #XMMEA_EP && gti(${gtifile},TIME) && (PI>150) \""
 
 elif	[ $camera == "mos1"  ] || [ $camera == "mos2" ]; then
 		echo "mos"
 	
-		expression_filter="#XMMEA_EM && (PI>10000) && (PATTERN==0)"	
-		rate_express="RATE<=$rate"
-		expression_clean="#XMMEA_EM && gti("$gtifile",TIME) && (PI>150)"
+		expression_filter="\" #XMMEA_EM && (PI>10000) && (PATTERN==0) \""
+		rate_express="\"RATE<=${rate}\""
+		expression_clean="\" #XMMEA_EM && gti(${gtifile},TIME) && (PI>150)\""
 		
 fi
 		
 									
-			
-evselect table="$eventfile"  withrateset=Y rateset="$ratefile" maketimecolumn=Y   timebinsize=100 makeratecolumn=Y expression="$expression_filter" 
+
+##create a full string and afterwards execute it
+	cmd="evselect table=${eventfile}  withrateset=Y rateset=${ratefile} maketimecolumn=Y   timebinsize=100 makeratecolumn=Y expression=${expression_filter}"
+	eval $cmd > /dev/null
+
+#log
+	echo "##Filtering">$logfile
+	echo "">>$logfile
+	echo $cmd >> $logfile			
+#evselect table="$eventfile"  withrateset=Y rateset="$ratefile" maketimecolumn=Y   timebinsize=100 makeratecolumn=Y expression="$expression_filter" 
 echo "${yellow}"
 echo "Step 1 of filtering: `success $?`"
-#	
-tabgtigen table=$ratefile expression="$rate_express" gtiset=$gtifile >/dev/null	
+#
+	cmd="tabgtigen table=${ratefile} expression=${rate_express} gtiset=${gtifile} "
+	eval $cmd >/dev/null
+#log 	
+	echo "">>$logfile
+	echo $cmd >> $logfile
+#tabgtigen table=$ratefile expression="$rate_express" gtiset=$gtifile >/dev/null	
 echo "Step 2 of filtering: `success $?`"
 ###
-evselect table=$eventfile  withfilteredset=Y filteredset=$cleaneventfile destruct=Y keepfilteroutput=T expression="$expression_clean" >/dev/null
-echo "Step 3 of filtering: `success $?`"
-echo "${reset}"
-###log
-
-echo "##Filtering">$logfile
-echo "">>$logfile
-
-
-echo "evselect table="$eventfile"  withrateset=Y rateset="$ratefile" maketimecolumn=Y   timebinsize=100 makeratecolumn=Y expression='"$expression_filter"' ">>$logfile
-echo "">>$logfile
-echo "tabgtigen table=$ratefile expression='"$rate_express"' gtiset=$gtifile">>$logfile
-echo "">>$logfile
-echo "evselect table=$eventfile  withfilteredset=Y filteredset=$cleaneventfile destruct=Y keepfilteroutput=T expression='"$expression_clean"'">>$logfile
-echo "">>$logfile
-
-
-
-
-if [ -n "$imagingeventfile" ]; then
-	echo "${green} Filtering second file, imaging data events${reset}"
- 
-		expression_clean_ima="#XMMEA_EM && gti("$gtifile_ima",TIME) && (PI>150)"
-	evselect table="$imagingeventfile"  withrateset=Y rateset="$ratefile_ima" maketimecolumn=Y   timebinsize=100 makeratecolumn=Y expression="$expression_filter" >/dev/null
-echo "${yellow}"
-echo "Step 1 of filtering: `success $?`"
-#       
-	tabgtigen table=$ratefile_ima expression="$rate_express" gtiset=$gtifile_ima >/dev/null 
-echo "Step 2 of filtering: `success $?`"
-###
-	evselect table=$imagingeventfile withfilteredset=Y filteredset=$cleaneventfile_ima destruct=Y keepfilteroutput=T expression="$expression_clean_ima" >/dev/null
+	cmd="evselect table=${eventfile}  withfilteredset=Y filteredset=${cleaneventfile} destruct=Y keepfilteroutput=T expression=${expression_clean}" >/dev/null
+	eval $cmd >/dev/null
+#log
+	echo "" >>$logfile
+	echo $cmd>>$logfile
+#evselect table=$eventfile  withfilteredset=Y filteredset=$cleaneventfile destruct=Y keepfilteroutput=T expression="$expression_clean" >/dev/null
 echo "Step 3 of filtering: `success $?`"
 echo "${reset}"
 
-
-##log
-
-
-	echo "#Filtering second file, imaging data events">>$logfile
-	echo "">>$logfile
-	echo "evselect table="$imagingeventfile"  withrateset=Y rateset="$ratefile_ima" maketimecolumn=Y   timebinsize=100 makeratecolumn=Y expression='"$expression_filter"' ">>$logfile
-	echo "">>$logfile
-	echo "tabgtigen table=$ratefile_ima expression='"$rate_express"' gtiset=$gtifile_ima">>$logfile
-	echo "">>$logfile
-	echo "evselect table=$imagingeventfile withfilteredset=Y filteredset=$cleaneventfile_ima destruct=Y keepfilteroutput=T expression='"$expression_clean_ima"'">>$logfile
-	echo "">>$logfile
-
-	else
-		echo "${red}false${reset}"
-
-fi
 
 ##
 ##Correction by barycenter
-##
+##Check it.. It seems there are a few issues between a barycenter-corrected event file and the  pileup-related tasks..
 
-cp $cleaneventfile "$sourcename"_"$camera"_"$mode"_nobary_correc.fits
+cp $cleaneventfile ${sourcename}_${camera}_${mode}_nobary_correc.fits
 
 echo "${yellow}Barycentric correction${reset}"
-barycen table=$cleaneventfile::EVENTS
+barycen table=$cleaneventfile::EVENTS >/dev/null
 
 
 #If imagingeventfile defined 
@@ -249,7 +239,7 @@ barycen table=$cleaneventfile::EVENTS
 	
 if [ -n "$imagingeventfile" ]; then
 		echo "${yellow}Barycentric correction for second file with imaging data${reset}"	
-		cp $cleaneventfile_ima "$sourcename"_"$camera"_"$mode"_imaging_nobary_correc.fits
+		cp ${cleaneventfile_ima} ${sourcename}_${camera}_${mode}_imaging_nobary_correc.fits
 		barycen table=$cleaneventfile_ima::EVENTS
 
 fi
@@ -259,57 +249,47 @@ fi
 #
 	echo "${yellow}Imaging the observed field ${reset}"	
 
-
-
 	if [ $mode == "timing" ]; then
 		echo "">>$logfile
-	
+#		echo "##Extracting image -- timing mode">>$logfile
+
 		if [ $camera == "mos1" ] || [ $camera == "mos2" ]; then
 			
 			echo "##Image for ${camera} in ${mode}">>$logfile
-			echo "">>$logfile
-	
-			evselect table=$cleaneventfile imagebinning=binSize imageset=$source_image withimageset=yes  xcolumn=RAWX ycolumn=TIME ximagebinsize=1 yimagebinsize=1 >/dev/null
+			cmd="evselect table=${cleaneventfile} imagebinning=binSize imageset=${source_image} withimageset=yes  xcolumn=RAWX ycolumn=TIME ximagebinsize=1 yimagebinsize=1"	
+			eval $cmd >/dev/null
 
 ##log	
-		echo "evselect table=$cleaneventfile imagebinning=binSize imageset=$source_image withimageset=yes  xcolumn=RAWX ycolumn=TIME ximagebinsize=1 yimagebinsize=1">>$logfile
+			echo $cmd>>$logfile
 			echo "${yellow}Image for ${camera} in ${mode} was produced?: `success $?` ${reset}"
 
 			elif [ $camera == "pn" ]; then
 
 			echo "Image for ${camera} in ${mode}">>$logfile
 			echo "">>$logfile			
-			evselect table=$cleaneventfile imagebinning=binSize imageset=$source_image withimageset=yes   xcolumn=RAWX ycolumn=RAWY ximagebinsize=1 yimagebinsize=1 >/dev/null
+			cmd="evselect table=${cleaneventfile} imagebinning=binSize imageset=${source_image} withimageset=yes   xcolumn=RAWX ycolumn=RAWY ximagebinsize=1 yimagebinsize=1"
+			echo "${green}command:"
+			echo "                ${cmd}${reset}"
+			eval $cmd >/dev/null
 ##log
-
-			echo "evselect table=$cleaneventfile imagebinning=binSize imageset=$source_image withimageset=yes xcolumn=RAWX ycolumn=RAWY ximagebinsize=1 yimagebinsize=1">>$logfile
+			echo $cmd >>$logfile
 		
 		fi
 
 	
 	elif [ $mode == "imaging" ]; then
-		
+		echo "">>$logfile
 		echo "##Image for ${camera} in ${mode}">>$logfile
 		echo "">>$logfile
-		evselect table=$cleaneventfile imagebinning=binSize imageset=$source_image  withimageset=yes  xcolumn=X ycolumn=Y ximagebinsize=80 yimagebinsize=80>/dev/null	
+		cmd="evselect table=$cleaneventfile imagebinning=binSize imageset=$source_image  withimageset=yes  xcolumn=X ycolumn=Y ximagebinsize=80 yimagebinsize=80"
+		eval $cmd >/dev/null
 ##log
-		echo "evselect table=$cleaneventfile imagebinning=binSize imageset=$source_image withimageset=yes  xcolumn=X ycolumn=Y ximagebinsize=80 yimagebinsize=80" >>$logfile
+		echo $cmd >>$logfile
 		echo "">>$logfile
 	fi
 	echo "${yellow}Image was produced?: `success $?` ${reset}"
 
-
-if [ -n "$imagingeventfile" ]; then
-		echo "Image for second file in imaging mode for mos in timing mode">>$logfile
-		echo "">>$logfile
-		evselect table=$cleaneventfile_ima imagebinning=binSize imageset=$bkg_image  withimageset=yes  xcolumn=X ycolumn=Y ximagebinsize=80 yimagebinsize=80>/dev/null
-		echo "${yellow}Image for background extraction produced?: `success $?` ${reset}"
-
-##log
-		echo "evselect table=$cleaneventfile_ima imagebinning=binSize imageset=$bkg_image withimageset=yes  xcolumn=X ycolumn=Y ximagebinsize=80 yimagebinsize=80">>$logfile
-		echo "">>$logfile
-
-fi 
+#############################################################
 
 	
 		;;
@@ -321,12 +301,29 @@ fi
 
 
 2)
-		echo "${blue}Pile-up analysis${reset}"
+	echo "${blue}Pile-up analysis${reset}"
+	echo "${blue}Make sure you have defined the extraction properly in the .conf file"
+	echo "Since it isn't check in the script${reset}"
 
+	cmd="evselect table=${cleaneventfile} withfilteredset=yes filteredset=pn_filtered.evt keepfilteroutput=yes expression=\"${sourceextraction} && gti(${gtifile},TIME)\" "
+	eval $cmd > /dev/null
+	echo "${yellow}"
+	echo "Step 1 pile-up --> extract clean  event file : `success $?`"
 
-evselect table=$cleaneventfile withfilteredset=yes filteredset=pn_filtered.evt keepfilteroutput=yes expression="${sourceextraction} && gti(${gtifile},TIME)"	
-
-epatplot set=pn_filtered.evt plotfile="pn_filtered_pat.ps" 
+#log 
+	echo "##Pile-up commands" > $logfile
+	echo $cmd >> $logfile
+	
+#Output .ps file name
+	filename=${camera}_${tag}_filtered_pat.ps	
+	cmd="epatplot set=pn_filtered.evt plotfile=${filename}"
+	eval $cmd >/dev/null
+	echo "Step 2 pile-up --> generate .ps plot to assess pile-up: `success $?`"
+	echo "${reset}"
+#log	
+	echo "" >>$logfile 
+	echo $cmd >>$logfile		
+#epatplot set=pn_filtered.evt plotfile="pn_filtered_pat.ps" 
 
 		;;
 
@@ -342,6 +339,7 @@ epatplot set=pn_filtered.evt plotfile="pn_filtered_pat.ps"
 ##Espectral extraction
 ##	
 	echo "${blue}Spectral extraction${reset}"
+	echo "##Spectral extraction" >$logfile
 
 
 	if [ $camera == "pn" ]; then
@@ -353,12 +351,11 @@ epatplot set=pn_filtered.evt plotfile="pn_filtered_pat.ps"
 			filter_express="#XMMEA_EM && (PATTERN<=12)" 
 	fi
 
-
-	source_signal_spec="$sourcename"_"$camera"_"$mode"_source_spectrum.fits
-	bkg_signal_spec="$sourcename"_"$camera"_"$mode"_bkg_spectrum.fits
-	source_spec="$sourcename"_"$camera"_"$mode"_spectrum.fits
-	rmf_matrix="$sourcename"_"$camera"_"$mode".rmf
-	arf_matrix="$sourcename"_"$camera"_"$mode".arf
+	source_signal_spec=${sourcename}_${camera}_${mode}_${tag}_source_spectrum.fits
+	bkg_signal_spec=${sourcename}_${camera}_${mode}_${tag}_bkg_spectrum.fits
+	source_spec=${sourcename}_${camera}_${mode}_${tag}_spectrum.fits
+	rmf_matrix=${sourcename}_${camera}_${mode}_${tag}.rmf
+	arf_matrix=${sourcename}_${camera}_${mode}_${tag}.arf
 
 ###
 ###Spectral extraction from pn camera
@@ -366,7 +363,13 @@ epatplot set=pn_filtered.evt plotfile="pn_filtered_pat.ps"
 	if [ $camera == "pn" ]; then
 
 #Source spectral extraction
-			evselect table=$cleaneventfile withspectrumset=yes spectrumset=$source_signal_spec energycolumn=PI spectralbinsize=5 withspecranges=yes specchannelmin=0 specchannelmax=20479  expression="${filter_express}&&${sourceextraction}" >/dev/null
+		cmd="evselect table=${cleaneventfile} withspectrumset=yes spectrumset=${source_signal_spec} energycolumn=PI spectralbinsize=5 withspecranges=yes specchannelmin=0 specchannelmax=20479  expression=\" ${filter_express}&&${sourceextraction}\" "
+		eval $cmd > /dev/null
+#log		
+		echo "">>$logfile
+		echo $cmd >>$logfile
+
+		
 
 	echo "${yellow}Source spectral extraction: `success $?`"
 
@@ -374,81 +377,85 @@ epatplot set=pn_filtered.evt plotfile="pn_filtered_pat.ps"
 
 #Background spectral extraction
 
+		cmd="evselect table=$cleaneventfile withspectrumset=yes spectrumset=$bkg_signal_spec energycolumn=PI spectralbinsize=5 withspecranges=yes specchannelmin=0 specchannelmax=20479 expression=\" ${filter_express}&&${bkgextraction}\" "
+		eval $cmd >/dev/null
 
-		 evselect table=$cleaneventfile withspectrumset=yes spectrumset=$bkg_signal_spec energycolumn=PI spectralbinsize=5 withspecranges=yes specchannelmin=0 specchannelmax=20479 expression="${filter_express}&&${bkgextraction}">/dev/null
+#log
+		echo "">>$logfile
+		echo $cmd >>$logfile
+
 
 	echo "${yellow}Background spectral extraction: `success $?`"
 
 	fi
 	
-###Calculate the area of source and background region used to make the spectral files
-##
-##
-##	backscale spectrumset=$source_signal_spec badpixlocation=$cleaneventfile > /dev/null
-##	backscale spectrumset=$bkg_signal_spec badpixlocation=$cleaneventfile >/dev/null
-##
-##	echo "${yellow}Backscale: `success $?`"
-##
-###Generate a redistribution matrix
-##
-##		rmfgen spectrumset=$source_signal_spec rmfset=$rmf_matrix>/dev/null
-##		echo "${yellow}rfmgen: `success $?`"
-##
-###Generate an ancillary file
-##
-##		arfgen spectrumset=$source_signal_spec arfset=$arf_matrix withrmfset=yes rmfset=$rmf_matrix  badpixlocation=$cleaneventfile  detmaptype=psf >/dev/null
-##		echo "${yellow}arfgen: `success $?`"
-##
-###Rebin the spectrum and link associated files
-##
-##	 specgroup spectrumset=$source_signal_spec mincounts=25 oversample=3 rmfset=$rmf_matrix arfset=$arf_matrix backgndset=$bkg_signal_spec groupedset=$source_spec >/dev/null
-##		echo "${yellow}specgroup: `success $?`"
-##
-##	echo "${reset}"
-
 
 ###Spectral extraction from MOS cameras
-
+##check technical  doc since mos1 or 2?  in timing mode only single ?? patterns are allowed
 
 if [ $camera == "mos1" ] || [ $camera == "mos2" ]; then
-	
+	echo "" >> $logfile
+	echo "##Spectral extraction for $camera in $mode mode"  >>$logfile
+	echo "" >> $logfile
 ##Source extraction 
 	if [ $mode == "timing" ]; then
-		evselect table=$cleaneventfile withspectrumset=yes spectrumset=$source_signal_spec energycolumn=PI spectralbinsize=5 withspecranges=yes specchannelmin=0 specchannelmax=11999 expression="(FLAG==0) && (PATTERN<=0) && ${sourceextraction}" >/dev/null
+##Spectral extraction, MOS data in timing mode
+##
+##Source extraction
+		cmd="evselect table=$cleaneventfile withspectrumset=yes spectrumset=$source_signal_spec energycolumn=PI spectralbinsize=5 withspecranges=yes specchannelmin=0 specchannelmax=11999 expression=\"(FLAG==0) && (PATTERN<=0) && ${sourceextraction}\" "
+		eval $cmd > /dev/null
+		echo "${yellow}Source spectral extraction for $camera in $mode mode: `success $?`"
+#log	
+		echo "" >> $logfile	
+		echo $cmd >> $logfile	
+###
+##Background extraction for mos in timing mode
+		cmd="evselect table=$cleaneventfile withspectrumset=yes spectrumset=$bkg_signal_spec energycolumn=PI spectralbinsize=5 withspecranges=yes specchannelmin=0 specchannelmax=11999 expression=\"(FLAG==0) && (PATTERN<=0) && ${bkgextraction}\" "
+		eval $cmd > /dev/null
+		echo "${yellow}Background spectral extraction for $camera in $mode mode: `success $?`"
+#log
+		echo "" >> $logfile	
+		echo $cmd >> $logfile	
+
 		else
-		 evselect table=$cleaneventfile  withspectrumset=yes spectrumset=$source_signal_spec energycolumn=PI spectralbinsize=5 withspecranges=yes specchannelmin=0 specchannelmax=11999 expression="${filter_express}&&${sourceextraction}">/dev/null
+#####
+###Source spectral extraction -- MOS data imaging mode
+		cmd="evselect table=$cleaneventfile  withspectrumset=yes spectrumset=$source_signal_spec energycolumn=PI spectralbinsize=5 withspecranges=yes specchannelmin=0 specchannelmax=11999 expression=\"${filter_express}&&${sourceextraction}\" "
+		eval $cmd > /dev/null
+		echo "${yellow}Source spectral extraction for $camera in $mode mode: `success $?`"
+#log
+		echo "">>$logfile
+		echo $cmd >>$logfile
+##Background extraction -- MOS data in imaging mode
+		cmd="evselect table=$cleaneventfile withspectrumset=yes spectrumset=$bkg_signal_spec energycolumn=PI spectralbinsize=5 withspecranges=yes specchannelmin=0 specchannelmax=11999 expression=\"${filter_express}&&${bkgextraction}\""
+		eval $cmd > /dev/null
+		echo "${yellow}Background spectral extraction for $camera in $mode mode: `success $?`"
+#log
+		echo "">>$logfile
+		echo $cmd >>$logfile
 
 	fi	
-	echo "${yellow}Source spectral extraction: `success $?`"
 
-##Background extraction 
-	
-	if [ -n "$imagingeventfile" ]; then
-		
-		 evselect table=$cleaneventfile_ima withspectrumset=yes spectrumset=$bkg_signal_spec energycolumn=PI spectralbinsize=5 withspecranges=yes specchannelmin=0 specchannelmax=11999  expression="(FLAG==0) && (PATTERN<=1 || PATTERN==3) && ${bkgextraction}">/dev/null
-		else
-		
-		evselect table=$cleaneventfile withspectrumset=yes spectrumset=$bkg_signal_spec energycolumn=PI spectralbinsize=5 withspecranges=yes specchannelmin=0 specchannelmax=11999 expression="${filter_express}&&${bkgextraction}" >/dev/null
-
-
- 	fi
-
-echo "${yellow}Background spectral extraction: `success $?`"
 fi
 
 
 #Calculate the area of source and background region used to make the spectral files
 
-
-        backscale spectrumset=$source_signal_spec badpixlocation=$cleaneventfile > /dev/null
+	cmd="backscale spectrumset=${source_signal_spec} badpixlocation=${cleaneventfile}"
+	eval $cmd > /dev/null
+#log
+	echo "" >>$logfile
+	echo $cmd >> $logfile
+	
+#        backscale spectrumset=$source_signal_spec badpixlocation=$cleaneventfile > /dev/null
 	echo "${yellow}Backscale for source: `success $?`"
- if [ -n "$imagingeventfile" ]; then
-		backscale spectrumset=$bkg_signal_spec badpixlocation=$cleaneventfile_ima >/dev/null
 
-		else 
-	        backscale spectrumset=$bkg_signal_spec badpixlocation=$cleaneventfile >/dev/null
 
-fi 
+		cmd="backscale spectrumset=${bkg_signal_spec} badpixlocation=${cleaneventfile}"
+		eval $cmd >/dev/null
+#log
+		echo "" >>$logfile
+		echo $cmd >>$logfile		
 
         echo "${yellow}Backscale for background: `success $?`"
 
@@ -456,80 +463,32 @@ fi
 
 #Generate a redistribution matrix
 
-                rmfgen spectrumset=$source_signal_spec rmfset=$rmf_matrix>/dev/null
+		cmd="rmfgen spectrumset=${source_signal_spec} rmfset=${rmf_matrix}"
+		eval $cmd >/dev/null
+#log 
+		echo "" >>$logfile
+		echo $cmd >>$logfile		
                 echo "${yellow}rfmgen: `success $?`"
 
 #Generate an ancillary file
-
-		arfgen spectrumset=$source_signal_spec arfset=$arf_matrix withrmfset=yes rmfset=$rmf_matrix  badpixlocation=$cleaneventfile  detmaptype=psf >/dev/null
+			
+		cmd="arfgen spectrumset=${source_signal_spec} arfset=${arf_matrix} withrmfset=yes rmfset=${rmf_matrix}  badpixlocation=${cleaneventfile}  detmaptype=psf"	
+		eval $cmd >/dev/null
+#log
+		echo "">>$logfile
+		echo $cmd >>$logfile	
                 echo "${yellow}arfgen: `success $?`"
 
 
 #Rebin the spectrum and link associated files
-
-         specgroup spectrumset=$source_signal_spec mincounts=$mincounts oversample=$oversample rmfset=$rmf_matrix arfset=$arf_matrix backgndset=$bkg_signal_spec groupedset=$source_spec >/dev/null
+	
+		cmd="specgroup spectrumset=${source_signal_spec} mincounts=${mincounts} oversample=${oversample} rmfset=${rmf_matrix} arfset=${arf_matrix} backgndset=${bkg_signal_spec} groupedset=${source_spec}"
+		eval $cmd >/dev/null
+#log
+	echo "">>$logfile
+	echo $cmd>>$logfile
                 echo "${yellow}specgroup: `success $?`"
 
-#log
-
-echo "#Source spectral extraction">$logfile
-echo "">>$logfile
-	if [ $camera == "pn" ]; then
-			echo "evselect table=$cleaneventfile withspectrumset=yes spectrumset=$source_signal_spec energycolumn=PI spectralbinsize=5 withspecranges=yes specchannelmin=0 specchannelmax=20479  expression="${filter_express}"&&"${sourceextraction}"">>$logfile
-
-		echo "">>$logfile
-		echo "# Background spectral extraction">>$logfile 
- 		echo "">>$logfile
-		echo "evselect table=$cleaneventfile withspectrumset=yes spectrumset=$bkg_signal_spec energycolumn=PI spectralbinsize=5 withspecranges=yes specchannelmin=0 specchannelmax=20479 expression="${filter_express}"&&"${bkgextraction}"">>$logfile
-		echo "">>$logfile
-
-			else
-			if [ $mode == "timing" ]; then
-				echo "evselect table=$cleaneventfile withspectrumset=yes spectrumset=$source_signal_spec energycolumn=PI spectralbinsize=5 withspecranges=yes specchannelmin=0 specchannelmax=11999 expression='(FLAG==0) &&(PATTERN<=0)&& ${sourceextraction}'" >>$logfile
-				else
-				echo "evselect table=$cleaneventfile  withspectrumset=yes spectrumset=$source_signal_spec energycolumn=PI spectralbinsize=5 withspecranges=yes specchannelmin=0 specchannelmax=11999 expression='"${filter_express}"&&"${sourceextraction}"' " >>$logfile
-			fi
-
-			echo "">>$logfile
-			echo "# Background spectral extraction">>$logfile
-
-			if [ -n "$imagingeventfile" ]; then
-				echo "evselect table=${cleaneventfile_ima} withspectrumset=yes spectrumset=${bkg_signal_spec} energycolumn=PI spectralbinsize=5 withspecranges=yes specchannelmin=0 specchannelmax=11999  expression='(FLAG==0) && (PATTERN<=1 || PATTERN==3)&&${bkgextraction}'" >>$logfile
-
-				else
-
-				echo "evselect table=$cleaneventfile withspectrumset=yes spec    trumset=$bkg_signal_spec energycolumn=PI spectralbinsize=5 withspecrang    es=yes specchannelmin=0 specchannelmax=11999 expression="${filter_express}"&&"${bkgextraction}"" >>$logfile
-			fi
-
-	fi
-
-	echo "">>$logfile
-
-	echo "#Calculate the area of source and background regions">>$logfile
-	echo "">>$logfile
-	echo "backscale spectrumset=$source_signal_spec badpixlocation=$cleaneventfile">>$logfile
-	if [ -n "$imagingeventfile" ]; then
-		echo "backscale spectrumset=$bkg_signal_spec badpixlocation=$cleaneventfile_ima">>$logfile
-				
-		else 	
-		echo "backscale spectrumset=$bkg_signal_spec badpixlocation=$cleaneventfile">>$logfile
-
-	fi 
-
-
-	echo "">>$logfile
-
-	echo "#Generate a redistribution matrix">>$logfile
-	echo "">>$logfile
-	echo "rmfgen spectrumset=$source_signal_spec rmfset=$rmf_matrix">>$logfile
-	echo "">>$logfile
-	echo "#Generate an ancillary file">>$logfile
-	echo "">>$logfile
-	echo "arfgen spectrumset=$source_signal_spec arfset=$arf_matrix withrmfset=yes rmfset=$rmf_matrix  badpixlocation=$cleaneventfile  detmaptype=psf">>$logfile
-	echo "">>$logfile
-	echo "#Rebin the spectrum and link associated files">>$logfile
-	echo "">>$logfile
-	echo "specgroup spectrumset=$source_signal_spec mincounts=$mincounts oversample=$oversample rmfset=$rmf_matrix arfset=$arf_matrix backgndset=$bkg_signal_spec groupedset=$source_spec">>$logfile
 
 	;;
 
@@ -546,7 +505,7 @@ echo "">>$logfile
 	
 if [ -z "$lctimeresolution" ]; then
 		echo "${red}LC resolution wasn't defined ${reset}"
-		exit 0
+		return 
 	else 
 		echo "${green}LC resolution of "${lctimeresolution}" s"
 fi
@@ -554,11 +513,14 @@ fi
 
 
 	if [ $camera == "pn" ]; then
-		
-			filter_express="#XMMEA_EP&&(FLAG==0)&&(PATTERN<=4) && (PI in [${Emin}:${Emax}])"
-	
-		else	
-			filter_express="#XMMEA_EM && (PATTERN<=12) && (PI in [${Emin}:${Emax}])"
+		filter_express="#XMMEA_EP && (FLAG==0) && (PATTERN<=4) && (PI in [${Emin}:${Emax}])"
+	elif [ $camera == "mos1" ] || [ $camera == "mos2" ]; then
+			if [ $mode == "timing" ]; then
+				filter_express="(FLAG==0) && (PATTERN<=0) && (PI in [${Emin}:${Emax}])"	
+				else
+				filter_express="#XMMEA_EM && (PATTERN<=12) && (PI in [${Emin}:${Emax}])" 
+			fi
+
 	fi
 
 
@@ -599,52 +561,51 @@ fi
 
 ###########################
 	echo "${blue}"
-	echo "          LC extraction between "${ScaleEmin}" e "${ScaleEmax}" keV"
+	echo "          LC extraction between "${ScaleEmin}" and "${ScaleEmax}" keV"
 	echo "${reset}"
 
 
 
-	source_signal="$sourcename"_"$camera"_"$mode"_source_"$ScaleEmin"-"$ScaleEmax"keV_"$lcresolution".lc
-	bkg_signal="$sourcename"_"$camera"_"$mode"_bkg_"$ScaleEmin"-"$ScaleEmax"keV_"$lcresolution".lc
-	source_lc="$sourcename"_"$camera"_"$mode"_lc_"$ScaleEmin"-"$ScaleEmax"keV_"$lcresolution".lc
+	source_signal=${sourcename}_${camera}_${mode}_${tag}_source_${ScaleEmin}-${ScaleEmax}keV_${lcresolution}.lc
+	bkg_signal=${sourcename}_${camera}_${mode}_${tag}_bkg_${ScaleEmin}-${ScaleEmax}keV_${lcresolution}.lc
+	source_lc=${sourcename}_${camera}_${mode}_${tag}_lc_${ScaleEmin}-${ScaleEmax}keV_${lcresolution}.lc
 
-
+	echo "##Light curve extraction " >$logfile
+	echo "## ${camera} in ${mode} with ${lcresolution}-s bin" >>$logfile	
 
 ##Source extraction
 
-echo "${yellow}"
-evselect table=$cleaneventfile energycolumn=PI  expression="${filter_express}&&${sourceextraction}" withrateset=yes rateset=$source_signal timebinsize=$lctimeresolution maketimecolumn=yes makeratecolumn=yes >/dev/null
+	echo "${yellow}"
+	cmd="evselect table=${cleaneventfile} energycolumn=PI  expression=\"${filter_express} && ${sourceextraction}\" withrateset=yes rateset=${source_signal} timebinsize=${lctimeresolution} maketimecolumn=yes makeratecolumn=yes"
+	eval $cmd > /dev/null
+	echo "LC extraction for source: `success $?`"
+#log
+	echo "">>$logfile
+	echo $cmd>>$logfile
 
-echo "Source extraction: `success $?` "
+
 
 ##background extraction
 
-evselect table=$cleaneventfile energycolumn=PI  expression="${filter_express}&&${bkgextraction}" withrateset=yes rateset=$bkg_signal timebinsize=$lctimeresolution maketimecolumn=yes makeratecolumn=yes >/dev/null
+	cmd="evselect table=${cleaneventfile} energycolumn=PI  expression=\"${filter_express} && ${bkgextraction}\" withrateset=yes rateset=${bkg_signal} timebinsize=${lctimeresolution} maketimecolumn=yes makeratecolumn=yes"
 
-echo "Background extraction: `success $?` "
+	eval $cmd > /dev/null
+	echo "Background extraction: `success $?` "
+#log
+	echo "">>$logfile
+	echo $cmd>>$logfile
+
 
 ##Combine
+	cmd="epiclccorr srctslist=${source_signal} eventlist=${cleaneventfile} outset=${source_lc} bkgtslist=${bkg_signal} withbkgset=yes applyabsolutecorrections=yes"
+	eval $cmd >/dev/null 
+	echo "Combining source + bkg: `success $?` "
+#log
+	echo "">>$logfile
+	echo $cmd>>$logfile
 
-epiclccorr srctslist=$source_signal eventlist=$cleaneventfile outset=$source_lc bkgtslist=$bkg_signal withbkgset=yes applyabsolutecorrections=yes > /dev/null
 
-echo "Combining source + bkg: `success $?` "
 echo "${reset}"
-
-
-##log
-
-echo "#Light curve extraction" >$logfile
-echo "">>$logfile
-echo "#source extraction ">>$logfile
-echo "evselect table="$cleaneventfile" energycolumn=PI  expression="${filter_express}"&&"${sourceextraction}" withrateset=yes rateset=$source_signal timebinsize=$lctimeresolution maketimecolumn=yes makeratecolumn=yes" >>$logfile
-echo "">>$logfile	
-echo "#background extraction">>$logfile
-echo "">>$logfile
-echo "evselect table=$cleaneventfile energycolumn=PI  expression="${filter_express}"&&"${bkgextraction}" withrateset=yes rateset=$bkg_signal timebinsize=$lctimeresolution maketimecolumn=yes makeratecolumn=yes">>$logfile
-echo "">>$logfile
-echo "#Combine">>$logfile
-echo "">>$logfile
-echo "epiclccorr srctslist=$source_signal eventlist=$cleaneventfile outset=$source_lc bkgtslist=$bkg_signal withbkgset=yes applyabsolutecorrections=yes">>$logfile
 
 
 	
