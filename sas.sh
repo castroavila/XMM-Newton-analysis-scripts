@@ -1,13 +1,17 @@
 #!/bin/bash 
 
 
-#  sas.sh
-#  
-#  Manuel Castro Avila <manuel.castro@inpe.br>
-#  
-#  28-02-2017
-#  
+# @author	   : Manuel Castro Avila <manuel.castro@inpe.br>
+# @file		   : sas.sh	
+# @created	   : 28-Feb-2017
 #  National Institute for Space Research (INPE),  São José dos Campos, SP, Brazil
+
+##################################################################################
+##################################################################################
+#  This script has been developed under financial support from FAPESP (Fundação  #
+#  de Amparo à Pesquisa do Estado de São Paulo, Brazil) under grant #2015/25972-0#
+##################################################################################
+##################################################################################
 
 	red=`tput setaf 1`
 	green=`tput setaf 2`
@@ -17,32 +21,25 @@
 	blink="\033[5m"
 
 
-##check if a command was successfully executed
-function success {
+argument=$1
 
+##########################################################
+#check if an argument has been provided 
+if [ -z $argument ]; then
+	echo "${red}You didn't  provide an argument${reset}"
+	return 
+fi	
 
-if [ $1 -ne 0 ]; then
-	echo "${red} Executed command failed${reset}"
-	return	
-	else
-	echo "${green}success${reset}"
-fi
-echo "${reset}"
-}
-
-function check {
-	cif_file=`ls $SAS_ODF/*.cif`
-#	echo "cif_file= "$cif_file
-	sumfile=`ls $SAS_ODF/*SUM.SAS`
-#	echo "SUM.SAS= "$sumfile
-
-
+##########################################################
 ##Load Heasoft and SAS
 
 if [ -v HEADAS ]; then
 	. $HEADAS/headas-init.sh
-	success $?
-	echo "${green} Heasoft loaded${reset}"
+	if [ $? -ne 0 ]; then
+		echo "${red}Executed command failed${reset}"
+		else
+		echo "${green} Heasoft loaded${reset}"
+	fi	
 	else
 	echo "${red} HEADAS variable didn't find. Check ~/.bashrc file${reset}"
 	return
@@ -51,7 +48,11 @@ fi
 
 if [ -v SAS_DIR ]; then
 	source $SAS_DIR/sas-setup.sh
-	echo "${green} SAS_DIR defined ${reset}"
+	if [ $? -ne 0 ]; then
+		echo "${red}Executed command failed${reset}"
+		else
+		echo "${green} SAS_DIR defined ${reset}"
+	fi	
 	else
 	echo "${red} SAS_DIR didn't find. Check ~/.bashrc file ${reset}"
 	return	
@@ -69,43 +70,75 @@ if [ -v SAS_PATH ]; then
 	echo "${red}SAS tools don't loaded${reset}"
 	 return  
 fi	
-echo ${reset}
-#with option "-z" checks if the variable is unset or set to empty string
 
-if [ -z $cif_file ] && [ -z $sumfile ] ; then
+##check if a command was successfully executed
+function success {
 
+
+if [ $1 -ne 0 ]; then
+	echo "${red} Executed command failed${reset}"
+fi
+}
+
+function check {
+#	cif_file=`ls $SAS_ODF/*.cif`
+#	sumfile=`ls $SAS_ODF/*SUM.SAS`
+
+
+##with option "-z" checks if the variable is unset or set to empty string
+#
+#if [ -z $cif_file ] && [ -z $sumfile ] ; then
+#
+#		cd $SAS_ODF
+#		echo "${green} cifbuild executing${reset}"
+#		cifbuild
+#		export SAS_CCF=$SAS_ODF/ccf.cif
+#		echo "${green} odfingest executing${reset}"
+#		odfingest
+#		sumfile=`ls $SAS_ODF/*SUM.SAS`
+#		export SAS_ODF=$sumfile
+#		
+#		else
+#		echo "${green}*.cif and *SUM.SAS files already exist${reset}"
+#
+#		export SAS_CCF=${cif_file}	
+#		export SAS_ODF=${sumfile}
+#fi 
+	
 		cd $SAS_ODF
+		echo "${green} cifbuild executing${reset}"
 		cifbuild
 		export SAS_CCF=$SAS_ODF/ccf.cif
+		echo "${green} odfingest executing${reset}"
 		odfingest
 		sumfile=`ls $SAS_ODF/*SUM.SAS`
 		export SAS_ODF=$sumfile
-		
-		else
-		echo "${green}*.cif and *SUM.SAS files already exist${reset}"
-
-		export SAS_CCF=${cif_file}	
-		export SAS_ODF=${sumfile}
-fi 
-	
 }
 
 #############################################
 #############################################
 #############################################
 
+##check if an argument has been provided 
+#if [ -z $1 ]; then
+#	echo "${red}You didn't provide an argument${reset}"
+#	return 
+#fi	
 
-
-#As input user can provide either the .tar.gz or the odf directory (if data have alraedy been extracted)
+#As input user can provide either the .tar.gz or the odf directory (if data have already been extracted)
 
 #If a file is provided, the script extracts it and creates odf, pn and mos directories
+
+
 
 
 #Option -f checks if $1 is a file and  exists
 
 ##Set full path of either file or directory
+	
 
-	full_path=`readlink -f $1`
+	full_path=`readlink -f $argument`
+	`success $?`
 #Path where files will be placed
 	root_path=$PWD
 if  [ -f ${full_path} ] && [ -n ${full_path}  ] ; then
@@ -118,7 +151,7 @@ if  [ -f ${full_path} ] && [ -n ${full_path}  ] ; then
 		
 	echo "${red}odf directory  already exists, delete it."
 	echo "Otherwise provide this directory instead the .tar.gz file ${reset}"
-	return 
+	return  
 	fi
 	mkdir odf pn mos
 	cd ${root_path}/odf
@@ -130,7 +163,7 @@ if  [ -f ${full_path} ] && [ -n ${full_path}  ] ; then
 	rm ${tar_file}
 	echo "${green}${tar_file} deleted ${reset}"	
 	check
-	echo "${green}Which camera do you want to extract the data from: (pn, mos, both)?${reset}"
+	echo "${green}Which camera(s) do you want to extract the eventfiles for: (pn, mos, both)?${reset}"
 	echo ""
 	read arg
 ##PN extraction	
@@ -152,7 +185,7 @@ if  [ -f ${full_path} ] && [ -n ${full_path}  ] ; then
 		epproc
 		cd ${root_path}/mos
 		emproc
-		echo "${green} Extraction  for both pn and mos cameras done${reset}"
+		echo "${green} Eventfile extraction for both pn and mos cameras done${reset}"
 		cd ${root_path}
 	
 	else 
@@ -169,8 +202,18 @@ fi
 if [ -n ${full_path} ] && [ -d ${full_path} ]; then
 	
 	echo -e "${green}You provided odf directory ${full_path}${reset}"
+	echo "${green}Make sure you have ran both epproc and emproc ${reset}"
 	export SAS_ODF=${full_path}
-	check
+#	check
+	cif_file=`ls $SAS_ODF/*.cif`
+	sumfile=`ls $SAS_ODF/*SUM.SAS`
+	if [ -z $cif_file ] && [ -z $sumfile ] ; then
+		echo "${red} You provided a odf directory, but it doesn't have neither the *.cif file nor the *SUM.SAS file."
+		echo "Check it or delete the odf directory and provide the original *.TAR file"
+		return
+	fi
+	export SAS_CCF=${cif_file}	
+	export SAS_ODF=${sumfile}
 fi
 
 #Neither file nor directory exists
