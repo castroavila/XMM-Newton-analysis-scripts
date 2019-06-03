@@ -138,9 +138,9 @@ fi
 	
 #Filtering the events 
 
-		ratefile=${sourcename}_ratefile_${camera}_${mode}.fits
-		gtifile=${sourcename}_gti_${camera}_${mode}.fits
-		cleaneventfile=${sourcename}_${camera}_${mode}_clean.fits		
+		ratefile=${sourcename}_ratefile_${camera}_${mode}_${tag}.fits
+		gtifile=${sourcename}_gti_${camera}_${mode}_${tag}.fits
+		cleaneventfile=${sourcename}_${camera}_${mode}_${tag}_clean.fits		
 #Filtering when mos is in timing mode. In this case two files are generated: TimingEvts and ImagingEvts.
 
 #if [ -z "$imagingeventfile" ]  &&  [ $camera == "mos1" ] || [ $camera == "mos2" ]  && [ $mode == "timing"  ]; then
@@ -159,8 +159,8 @@ fi
 #Image for both source and background extraction
 
 						
-		source_image=${sourcename}_${camera}_${mode}_source_image.fits
-		bkg_image=_${camera}_${mode}_bkg_image.fits
+		source_image=${sourcename}_${camera}_${mode}_${tag}_source_image.fits
+		bkg_image=${sourcename}_${camera}_${mode}_${tag}_bkg_image.fits
 
 	echo "${yellow}Task:${reset}"
 	
@@ -228,7 +228,7 @@ echo "${reset}"
 ##Correction by barycenter
 ##Check it.. It seems there are a few issues between a barycenter-corrected event file and the  pileup-related tasks..
 
-cp $cleaneventfile ${sourcename}_${camera}_${mode}_nobary_correc.fits
+cp $cleaneventfile ${sourcename}_${camera}_${mode}_${tag}_nobary_correc.fits
 
 echo "${yellow}Barycentric correction${reset}"
 barycen table=$cleaneventfile::EVENTS >/dev/null
@@ -263,13 +263,13 @@ fi
 			echo $cmd>>$logfile
 			echo "${yellow}Image for ${camera} in ${mode} was produced?: `success $?` ${reset}"
 
-			elif [ $camera == "pn" ]; then
+		elif [ $camera == "pn" ]; then
 
 			echo "Image for ${camera} in ${mode}">>$logfile
 			echo "">>$logfile			
 			cmd="evselect table=${cleaneventfile} imagebinning=binSize imageset=${source_image} withimageset=yes   xcolumn=RAWX ycolumn=RAWY ximagebinsize=1 yimagebinsize=1"
-			echo "${green}command:"
-			echo "                ${cmd}${reset}"
+#			echo "${green}command:"
+#			echo "                ${cmd}${reset}"
 			eval $cmd >/dev/null
 ##log
 			echo $cmd >>$logfile
