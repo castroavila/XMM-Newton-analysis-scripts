@@ -142,18 +142,23 @@ function check {
 #Path where files will be placed
 	root_path=$PWD
 if  [ -f ${full_path} ] && [ -n ${full_path}  ] ; then
-	echo -e "${green}You provided a .tar file $1"
-	echo "${green}It will be extracted, odf, pn and mos directories will be created"
-	echo "Files from ${full_path} will be placed into odf directory ${reset}"
-
+#Create a directory named after the ObsID to place all the files in there
+	directory=`ls ${argument} | awk -F"." '{print($1)}' `	
+	root_path=$PWD/${directory}
 ##check if either odf, pn or mos exist
-	if [ -d "odf" ]; then
+	if [ -d "${root_path}/odf" ]; then
 		
 	echo "${red}odf directory  already exists, delete it."
 	echo "Otherwise provide this directory instead the .tar.gz file ${reset}"
 	return  
 	fi
-	mkdir odf pn mos
+
+	mkdir ${root_path}
+	echo -e "${green}You provided a .tar file $1"
+	echo "${green}It will be extracted, odf, pn and mos directories will be created"
+	echo "Files from ${full_path} will be placed into odf directory ${reset}"
+
+	mkdir ${root_path}/odf ${root_path}/pn ${root_path}/mos
 	cd ${root_path}/odf
 	export SAS_ODF=$PWD
 	tar xvfz ${full_path}
