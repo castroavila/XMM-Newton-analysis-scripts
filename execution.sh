@@ -303,9 +303,10 @@ fi
 2)
 	echo "${blue}Pile-up analysis${reset}"
 	echo "${blue}Make sure you have defined the extraction properly in the .conf file"
-	echo "Since it isn't check in the script${reset}"
+	echo "Since it isn't checked in the script${reset}"
+	evt_file=${camera}_${tag}_filtered.evt
 
-	cmd="evselect table=${cleaneventfile} withfilteredset=yes filteredset=pn_filtered.evt keepfilteroutput=yes expression=\"${sourceextraction} && gti(${gtifile},TIME)\" "
+	cmd="evselect table=${cleaneventfile} withfilteredset=yes filteredset=${evt_file} keepfilteroutput=yes expression=\"${sourceextraction} && gti(${gtifile},TIME)\" "
 	eval $cmd > /dev/null
 	echo "${yellow}"
 	echo "Step 1 pile-up --> extract clean  event file : `success $?`"
@@ -316,7 +317,7 @@ fi
 	
 #Output .ps file name
 	filename=${camera}_${tag}_filtered_pat.ps	
-	cmd="epatplot set=pn_filtered.evt plotfile=${filename}"
+	cmd="epatplot set=${evt_file} plotfile=${filename}"
 	eval $cmd >/dev/null
 	echo "Step 2 pile-up --> generate .ps plot to assess pile-up: `success $?`"
 	echo "${reset}"
